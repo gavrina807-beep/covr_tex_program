@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мониторинг Облигаций РФ (ОФЗ)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #F8FAFC;       /* Светлый платиновый фон */
+            --card-bg: #FFFFFF;       /* Белоснежные карточки */
+            --text-primary: #0F172A;  /* Глубокий графитовый цвет текста */
+            --text-secondary: #64748B;/* Сдержанный серый */
+            --mint-accent: #059669;   /* Изумрудно-мятный для доходности */
+            --mint-light: #E6F4EA;    /* Мягкая мятная плашка */
+            --red-accent: #DC2626;    /* Красный акцент для падения цены */
+            --border-color: #E2E8F0;  /* Тонкие разделители */
+            --shadow-smooth: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 16px -6px rgba(15, 23, 42, 0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 50px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1050px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .date-badge {
+            display: inline-block;
+            background: #EDF2F7;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid #CBD5E1;
+        }
+
+        .error-card {
+            background: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            color: var(--red-accent);
+            font-weight: 500;
+            box-shadow: var(--shadow-smooth);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: var(--shadow-smooth);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.08);
+            border-color: #CBD5E1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .bond-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bond-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .bond-ticker {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .yield-badge {
+            background-color: var(--mint-light);
+            color: var(--mint-accent);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .yield-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            display: block;
+            font-weight: 400;
+            text-transform: uppercase;
+            margin-bottom: 1px;
+        }
+
+        .price-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .price-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-main {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .price-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .change-up {
+            color: var(--mint-accent);
+        }
+
+        .change-down {
+            color: var(--red-accent);
+        }
+
+        .change-icon {
+            margin-right: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Государственные облигации РФ</h1>
+            <div class="subtitle">Мониторинг доходности и стоимости ОФЗ</div>
+            {% if date %}
+                <div class="date-badge">MOEX ISS Секция долга: {{ date }}</div>
+            {% endif %}
+        </header>
+
+        {% if error %}
+            <div class="error-card">
+                {{ error }}
+            </div>
+        {% else %}
+            <div class="grid">
+                {% for bond in bonds %}
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="bond-title">
+                                <span class="bond-name">{{ bond.name }}</span>
+                                <span class="bond-ticker">{{ bond.ticker }}</span>
+                            </div>
+                            <div class="yield-badge">
+                                <span class="yield-label">Доходность</span>
+                                {{ bond.yield }}{% if bond.yield != "—" %}%{% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="price-section">
+                            <div class="price-container">
+                                <span class="price-main">{{ bond.price_percent }}%</span>
+                                <span class="price-label">от номинала ({{ bond.face_value }} ₽)</span>
+                            </div>
+                            
+                            <div class="price-change {% if bond.change >= 0 %}change-up{% else %}change-down{% endif %}">
+                                <span class="change-icon">{% if bond.change >= 0 %}▲{% else %}▼{% endif %}</span>
+                                {% if bond.change >= 0 %}+{% endif %}{{ bond.change }}%
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
